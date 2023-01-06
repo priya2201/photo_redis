@@ -1,0 +1,85 @@
+const express = require('express')
+const fetch = require("node-fetch");
+const redis = require('redis')
+const { promisify } = require("util");
+const bodyParser=require('body-parser')
+const app = express()
+
+// create express application instance
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended:true}))
+ 
+// create and connect redis client to local instance.
+const client = redis.createClient();
+
+(async () => {
+    await client.connect();
+})();
+
+ 
+client.on('connect', () => console.log('Redis Client Connected'));
+// echo redis errors to the console
+
+client.on('error', (err) => {
+    console.log("Error " + err)
+});
+
+const SET_ASYNC = promisify(client.SET).bind(client);
+
+const GET_ASYNC = promisify(client.GET).bind(client);
+
+app.post('/setdata', async (req, res) => {
+    const data=req.body
+    await SET_ASYNC(`${data.id}`, JSON.stringify(data))
+}),
+
+app.get('/getdata/:id',async  (req, res) => {
+    const id=req.params.id
+    const data=await GET_ASYNC(`${id}`)
+    console.log(data);
+    res.send({data:data})
+
+})
+
+// get photos list
+// app.get('/photos', (req, res) => {
+//  console.log('hello');
+//     // key to store results in Redis store
+//     const photosRedisKey = 'user:photos';
+ 
+//     // Try fetching the result from Redis first in case we have it cached
+//     return client.get(photosRedisKey, (err, photos) => {
+ 
+//         // If that key exists in Redis store
+//         if (photos) {
+ 
+//             return res.json({ source: 'cache', data: JSON.parse(photos) })
+ 
+//         } else { // Key does not exist in Redis store
+ 
+//             // Fetch directly from remote api
+//             fetch('https://jsonplaceholder.typicode.com/photos')
+//                 .then(response => response.json())
+//                 .then(photos => {
+//  console.log('photos',photos);
+//                     // Save the  API response in Redis store,  data expire time in 3600 seconds, it means one hour
+//                     client.set(photosRedisKey,JSON.stringify(photos))
+ 
+//                     // Send JSON response to client
+//                     return res.json({ source: 'api', data: photos })
+ 
+//                 })
+//                 .catch(error => {
+//                     // log error message
+//                     console.log(error)
+//                     // send error to the client 
+//                     return res.json(error.toString())
+//                 })
+//         }
+//     });
+// });
+ 
+// start express server at 3000 port
+app.listen(3000, () => {
+    console.log('Server listening on port: ', 3000)
+});

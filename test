@@ -1,0 +1,50 @@
+function test(){
+    setTimeout(()=>{
+        console.log('2')
+    })
+}
+
+
+let obj = {
+    "a": 1,
+    "b": 2,
+    fun1: ()=> {
+        return this.a
+}
+}
+let print = obj.fun1()
+console.log(print);
+
+let str1='mam';
+let rev='';
+for(i=str1.length-1;i>=0;i--){
+    rev=rev+str1[i]
+}
+if(rev=== str1){
+    console.log('palindrome')
+}else{
+    console.log('Not a palindrome')
+}
+
+// this function in javascript when it's refering this window object
+//console.log(this);
+
+var age=28;
+function displayage(){
+    console.log(age);
+    console.log(this.age);
+}
+displayage();
+//window.displayage();
+
+var person={
+    age:26,
+    displayage:displayage,
+    nestedperson:{
+        age:34,
+        displayage:displayage
+    }
+}
+person.displayage();
+person.nestedperson.displayage();
+//nestedperson.displayage();
